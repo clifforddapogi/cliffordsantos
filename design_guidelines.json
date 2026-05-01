@@ -1,0 +1,132 @@
+{
+  "project_context": {
+    "domain": "Portfolio / Personal Brand",
+    "theme": "Light Theme (with High-Contrast Dark Navy elements)",
+    "archetype": "Archetype 4 (Swiss & High-Contrast) + Editorial Tone",
+    "owner": "Clifford Santos",
+    "role": "Graphic Designer / Front-End Developer / Technical Support",
+    "vibe": "Editorial, distinctive, opinionated, art-directed. Think bold display typography, asymmetric bento grid, generous whitespace, subtle animation, kinetic text."
+  },
+  "color_system": {
+    "palette": {
+      "primary_cyan": "#0093c9",
+      "dark_navy": "#2c3e50",
+      "deep_footer_navy": "#004965",
+      "background_light": "#f8fafc",
+      "foreground_dark": "#0f172a",
+      "surface_border": "#e2e8f0",
+      "surface_hover": "#f1f5f9"
+    },
+    "tailwind_variables": {
+      "root": {
+        "--background": "210 40% 98%",
+        "--foreground": "222.2 84% 4.9%",
+        "--primary": "196 100% 39%",
+        "--primary-foreground": "0 0% 100%",
+        "--navy": "210 29% 24%",
+        "--navy-deep": "196 100% 20%",
+        "--border": "214.3 31.8% 91.4%"
+      }
+    },
+    "usage_rules": {
+      "background": "Use background_light (#f8fafc) as the primary page background to keep contrast sharp against navy and cyan.",
+      "ctas": "Use primary_cyan (#0093c9) strictly for primary actions, buttons, and selective hover states or kinetic typographic highlights.",
+      "footer_and_inverted_cards": "Use deep_footer_navy (#004965) for the footer and dark_navy (#2c3e50) for inverted bento grid cards to create visual tension.",
+      "text": "Dark slate (#0f172a) for high readability."
+    }
+  },
+  "typography_system": {
+    "fonts": {
+      "headings": {
+        "family": "Cabinet Grotesk, sans-serif",
+        "fallback": "Clash Display, sans-serif",
+        "description": "Bold, neo-grotesque display font. Use font-black or font-light to create extreme weight contrast."
+      },
+      "body": {
+        "family": "Satoshi, sans-serif",
+        "fallback": "Inter, sans-serif",
+        "description": "Clean, geometric sans for readability."
+      }
+    },
+    "scale": {
+      "h1_hero": "text-5xl sm:text-7xl lg:text-[7vw] leading-none tracking-tighter font-black",
+      "h2_section": "text-4xl sm:text-5xl lg:text-6xl tracking-tight font-bold",
+      "h3_card": "text-2xl sm:text-3xl tracking-tight font-medium",
+      "overline": "text-xs uppercase tracking-[0.2em] font-bold text-primary",
+      "body": "text-base sm:text-lg leading-relaxed"
+    },
+    "rules": {
+      "no_center": "Avoid centering paragraph text. Left-align for strong editorial hierarchy.",
+      "kinetic_hover": "On links and project titles, implement a subtle kinetic/staggered character hover effect if possible, or a cyan underline slide-in."
+    }
+  },
+  "layout_and_spacing": {
+    "grid_system": "Mode A: The 'Tetris' Bento Grid. Use for the Projects/Case Studies section.",
+    "bento_rules": {
+      "container": "grid grid-cols-1 md:grid-cols-8 lg:grid-cols-12 gap-6 lg:gap-8",
+      "item_large": "col-span-full md:col-span-8 row-span-2 (Hero project)",
+      "item_tall": "col-span-full md:col-span-4 row-span-2",
+      "item_square": "col-span-full md:col-span-4 row-span-1"
+    },
+    "spacing": "Generous spacing. Use py-24 or py-32 for section padding. Containers must have internal padding (p-8 to p-12) to prevent text collision.",
+    "corners": "Rounded-3xl for bento cards to balance the sharp typographic feel with modern 2026 aesthetics. Use 1px subtle borders (border-border)."
+  },
+  "component_architecture": {
+    "navigation": {
+      "style": "Glassmorphism sticky header (backdrop-blur-xl bg-background_light/80) with 1px bottom border.",
+      "elements": "Logo (CS monogram text or icon), Links (About, Experience, Projects, Skills), CTA (Resume Download - primary cyan button)."
+    },
+    "hero": {
+      "style": "Typographic focus. Asymmetric layout.",
+      "structure": "Massive text 'Clifford Santos'. Underneath, a staggered grid showing a short bio and an abstract design element or headshot placeholder. Do not center everything."
+    },
+    "about": {
+      "structure": "Split layout. Left: Large kinetic typography or statement. Right: Headshot (rounded-2xl) paired with a structured, multi-paragraph bio. Include subtle background noise/grain texture in this section."
+    },
+    "experience": {
+      "style": "Editorial Timeline.",
+      "structure": "Left-aligned company names (h3) and dates (overline). Body text describing roles. Use a vertical 1px line (border-l) to connect them visually. Companies: Bridge View Strategies (2016-2026), Lokeel, Custom Virtual Solutions, BCWebLab."
+    },
+    "projects": {
+      "style": "Bento Grid Showcase.",
+      "structure": "12 projects (Jenny Gausto Logo, Bakers Roofing, etc.). Mix images with text-only cards. Some cards inverted (Dark Navy bg, White text) for contrast. Images must fill the card space and scale on hover."
+    },
+    "skills": {
+      "style": "Pill / Tag Cloud.",
+      "structure": "Group by category (Design, Dev, Marketing, AI). Use hollow pills (border border-navy text-navy) and solid pills for emphasis."
+    },
+    "contact": {
+      "style": "Minimalist Form.",
+      "structure": "Use Shadcn Form, Input, Textarea. Strip default borders and use bottom-border only (underlined inputs) for an editorial feel, or heavily rounded minimalist inputs. Button: Dark Navy background, Cyan hover."
+    },
+    "footer": {
+      "style": "Massive & Deep.",
+      "structure": "Deep footer navy background (#004965). Huge 'Let's Talk' text (text-[10vw]). Social links (FB, Twitter, LinkedIn, DeviantArt). Cyan accents."
+    }
+  },
+  "motion_and_interaction": {
+    "scroll": "MANDATORY: Implement Lenis smooth scroll for a premium feel.",
+    "page_load": "Framer Motion staggered text reveals for the Hero section.",
+    "hover_states": "Images inside bento cards MUST have group-hover:scale-105 transition-transform duration-700 ease-out. Text colors must shift to cyan on interactive elements.",
+    "cursor": "Implement a custom subtle dot cursor that expands on interactive elements (optional but recommended for creative portfolios)."
+  },
+  "media_assets": {
+    "headshot": {
+      "url": "https://images.unsplash.com/photo-1633625510483-c177f4308f33?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2ODl8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBjcmVhdGl2ZSUyMGdyYXBoaWMlMjBkZXNpZ25lciUyMG1hbGUlMjBwb3J0cmFpdCUyMGhlYWRzaG90fGVufDB8fHx8MTc3NzY3OTY0N3ww&ixlib=rb-4.1.0&q=85",
+      "usage": "About section profile image."
+    },
+    "projects_mockups_web": [
+      "https://images.unsplash.com/photo-1702479744181-2d6b58941583?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA4Mzl8MHwxfHNlYXJjaHwyfHxtb2Rlcm4lMjB3ZWJzaXRlJTIwZGVzaWduJTIwbGF5b3V0JTIwc2hvd2Nhc2UlMjBtb2NrdXB8ZW58MHx8fHwxNzc3Njc5NjQ3fDA&ixlib=rb-4.1.0&q=85",
+      "https://images.unsplash.com/photo-1634084462412-b54873c0a56d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA4Mzl8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjB3ZWJzaXRlJTIwZGVzaWduJTIwbGF5b3V0JTIwc2hvd2Nhc2UlMjBtb2NrdXB8ZW58MHx8fHwxNzc3Njc5NjQ3fDA&ixlib=rb-4.1.0&q=85",
+      "https://images.unsplash.com/photo-1648134859211-4a1b57575f4e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA4Mzl8MHwxfHNlYXJjaHwzfHxtb2Rlcm4lMjB3ZWJzaXRlJTIwZGVzaWduJTIwbGF5b3V0JTIwc2hvd2Nhc2UlMjBtb2NrdXB8ZW58MHx8fHwxNzc3Njc5NjQ3fDA&ixlib=rb-4.1.0&q=85"
+    ],
+    "projects_mockups_logo": [
+      "https://images.unsplash.com/photo-1695634621295-8f83685a35bb?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1ODR8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBtaW5pbWFsJTIwYWJzdHJhY3QlMjBsb2dvJTIwYnJhbmQlMjBpZGVudGl0eSUyMG1vY2t1cHxlbnwwfHx8fDE3Nzc2Nzk2NjB8MA&ixlib=rb-4.1.0&q=85",
+      "https://images.unsplash.com/photo-1543441235-e8c913dea2d7?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1ODR8MHwxfHNlYXJjaHw0fHxtb2Rlcm4lMjBtaW5pbWFsJTIwYWJzdHJhY3QlMjBsb2dvJTIwYnJhbmQlMjBpZGVudGl0eSUyMG1vY2t1cHxlbnwwfHx8fDE3Nzc2Nzk2NjB8MA&ixlib=rb-4.1.0&q=85"
+    ],
+    "instructions_to_main_agent": "Use these images randomly to populate the 12 project bento cards. Do not use placehold.it or via.placeholder.com. Use phosphor-icons for all UI iconography."
+  },
+  "testing_requirements": {
+    "attributes": "Add data-testid attributes to all interactive elements (links, buttons, form inputs, bento cards). e.g., data-testid='hero-contact-button'."
+  }
+}
