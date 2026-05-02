@@ -76,7 +76,7 @@ export default function Hero({ site }) {
       <div className="mt-16 lg:mt-24 border-y border-navy/15 py-5 overflow-hidden bg-bone/40" data-testid="hero-marquee">
         <div className="marquee-track flex gap-12 whitespace-nowrap">
           {Array(2).fill(0).map((_, i) => (
-            <div key={i} className="flex gap-12 items-center font-display text-3xl lg:text-4xl text-navy/85 tracking-tightest">
+            <div key={`marquee-track-${i}`} className="flex gap-12 items-center font-display text-3xl lg:text-4xl text-navy/85 tracking-tightest">
               <span>Brand Identity</span><span className="text-cyan_brand">✦</span>
               <span>Landing Pages</span><span className="text-cyan_brand">✦</span>
               <span>Web Design</span><span className="text-cyan_brand">✦</span>

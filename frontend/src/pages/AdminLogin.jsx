@@ -15,8 +15,8 @@ export default function AdminLogin() {
     setErr("");
     setLoading(true);
     try {
-      const { data } = await api.post("/auth/login", { email, password: pw });
-      localStorage.setItem("cs_admin_token", data.token);
+      // Login sets an httpOnly access_token cookie — no localStorage needed.
+      await api.post("/auth/login", { email, password: pw });
       nav("/admin/dashboard");
     } catch (e) {
       const d = e.response?.data?.detail;

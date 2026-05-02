@@ -284,7 +284,17 @@ DEFAULT_PROJECTS = [
 
 
 async def seed():
-    # admin
+    """Idempotent startup seeding — orchestrates each section."""
+    await _seed_admin()
+    await _seed_singleton("site", DEFAULT_SITE)
+    await _seed_collection("projects", DEFAULT_PROJECTS)
+    await _seed_collection("experiences", DEFAULT_EXPERIENCES)
+    await _seed_collection("education", DEFAULT_EDUCATION)
+    await _seed_singleton("skills", DEFAULT_SKILLS)
+    await _ensure_indexes()
+
+
+async def _seed_admin() -> None:
     admin_email = os.environ.get("ADMIN_EMAIL", "admin@example.com").lower()
     admin_password = os.environ.get("ADMIN_PASSWORD", "admin123")
     existing = await db.users.find_one({"email": admin_email})
@@ -297,41 +307,34 @@ async def seed():
             "role": "admin",
             "created_at": now_iso(),
         })
-    else:
-        if not verify_password(admin_password, existing["password_hash"]):
-            await db.users.update_one(
-                {"email": admin_email},
-                {"$set": {"password_hash": hash_password(admin_password)}},
-            )
+        return
+    if not verify_password(admin_password, existing["password_hash"]):
+        await db.users.update_one(
+            {"email": admin_email},
+            {"$set": {"password_hash": hash_password(admin_password)}},
+        )
 
-    # site content
-    if await db.site.count_documents({}) == 0:
-        await db.site.insert_one({"_id": "main", **DEFAULT_SITE})
 
-    # projects
-    if await db.projects.count_documents({}) == 0:
-        await db.projects.insert_many([{**p} for p in DEFAULT_PROJECTS])
+async def _seed_singleton(collection: str, defaults: dict) -> None:
+    coll = db[collection]
+    if await coll.count_documents({}) == 0:
+        await coll.insert_one({"_id": "main", **defaults})
 
-    # experience
-    if await db.experiences.count_documents({}) == 0:
-        await db.experiences.insert_many([{**e} for e in DEFAULT_EXPERIENCES])
 
-    # education
-    if await db.education.count_documents({}) == 0:
-        await db.education.insert_many([{**e} for e in DEFAULT_EDUCATION])
+async def _seed_collection(collection: str, defaults: list) -> None:
+    coll = db[collection]
+    if await coll.count_documents({}) == 0:
+        await coll.insert_many([{**doc} for doc in defaults])
 
-    # skills
-    if await db.skills.count_documents({}) == 0:
-        await db.skills.insert_one({"_id": "main", **DEFAULT_SKILLS})
 
-    # indexes
+async def _ensure_indexes() -> None:
     try:
         await db.users.create_index("email", unique=True)
         await db.projects.create_index("order")
         await db.experiences.create_index("order")
         await db.education.create_index("order")
-    except Exception:
-        pass
+    except Exception as exc:  # noqa: BLE001
+        print(f"[seed] index creation skipped: {exc}")
 
 
 @asynccontextmanager
@@ -342,10 +345,14 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+_cors_origins = os.environ.get("CORS_ORIGINS", "*")
+_origins_list = [o.strip() for o in _cors_origins.split(",") if o.strip()]
+_allow_credentials = _cors_origins != "*"
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=_origins_list,
+    allow_credentials=_allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -355,13 +362,13 @@ api = APIRouter(prefix="/api")
 
 # ---------- AUTH ----------
 @api.post("/auth/login")
-async def login(payload: LoginIn, response: Response):
+async def login(payload: LoginIn, response: Response) -> dict:
     user = await db.users.find_one({"email": payload.email.lower()})
     if not user or not verify_password(payload.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     token = create_access_token(user["id"], user["email"])
     response.set_cookie(
-        key="access_token", value=token, httponly=True, secure=False,
+        key="access_token", value=token, httponly=True, secure=True,
         samesite="lax", max_age=86400, path="/",
     )
     return {
@@ -371,19 +378,19 @@ async def login(payload: LoginIn, response: Response):
 
 
 @api.post("/auth/logout")
-async def logout(response: Response):
+async def logout(response: Response) -> dict:
     response.delete_cookie("access_token", path="/")
     return {"ok": True}
 
 
 @api.get("/auth/me")
-async def me(user: dict = Depends(get_current_admin)):
+async def me(user: dict = Depends(get_current_admin)) -> dict:
     return user
 
 
 # ---------- PUBLIC CONTENT ----------
 @api.get("/site")
-async def get_site():
+async def get_site() -> dict:
     doc = await db.site.find_one({"_id": "main"})
     if not doc:
         raise HTTPException(404, "Site not initialized")
@@ -392,25 +399,25 @@ async def get_site():
 
 
 @api.get("/projects")
-async def list_projects():
+async def list_projects() -> list:
     cur = db.projects.find({}, {"_id": 0}).sort("order", 1)
     return [p async for p in cur]
 
 
 @api.get("/experience")
-async def list_experience():
+async def list_experience() -> list:
     cur = db.experiences.find({}, {"_id": 0}).sort("order", 1)
     return [e async for e in cur]
 
 
 @api.get("/education")
-async def list_education():
+async def list_education() -> list:
     cur = db.education.find({}, {"_id": 0}).sort("order", 1)
     return [e async for e in cur]
 
 
 @api.get("/skills")
-async def get_skills():
+async def get_skills() -> dict:
     doc = await db.skills.find_one({"_id": "main"})
     if not doc:
         return {"groups": []}
@@ -419,7 +426,7 @@ async def get_skills():
 
 
 @api.post("/contact")
-async def submit_contact(payload: ContactIn):
+async def submit_contact(payload: ContactIn) -> dict:
     msg = {
         "id": str(uuid.uuid4()),
         "name": payload.name,
@@ -435,14 +442,14 @@ async def submit_contact(payload: ContactIn):
 
 # ---------- ADMIN ----------
 @api.put("/admin/site")
-async def update_site(payload: SiteContent, user=Depends(get_current_admin)):
+async def update_site(payload: SiteContent, user: dict = Depends(get_current_admin)) -> dict:
     data = payload.model_dump()
     await db.site.update_one({"_id": "main"}, {"$set": data}, upsert=True)
     return {"ok": True}
 
 
 @api.post("/admin/projects")
-async def create_project(payload: Project, user=Depends(get_current_admin)):
+async def create_project(payload: Project, user: dict = Depends(get_current_admin)) -> dict:
     data = payload.model_dump()
     data["id"] = data.get("id") or str(uuid.uuid4())
     await db.projects.insert_one({**data})
@@ -450,7 +457,7 @@ async def create_project(payload: Project, user=Depends(get_current_admin)):
 
 
 @api.put("/admin/projects/{pid}")
-async def update_project(pid: str, payload: Project, user=Depends(get_current_admin)):
+async def update_project(pid: str, payload: Project, user: dict = Depends(get_current_admin)) -> dict:
     data = payload.model_dump()
     data["id"] = pid
     await db.projects.update_one({"id": pid}, {"$set": data}, upsert=True)
@@ -458,13 +465,13 @@ async def update_project(pid: str, payload: Project, user=Depends(get_current_ad
 
 
 @api.delete("/admin/projects/{pid}")
-async def delete_project(pid: str, user=Depends(get_current_admin)):
+async def delete_project(pid: str, user: dict = Depends(get_current_admin)) -> dict:
     await db.projects.delete_one({"id": pid})
     return {"ok": True}
 
 
 @api.post("/admin/experience")
-async def create_exp(payload: Experience, user=Depends(get_current_admin)):
+async def create_exp(payload: Experience, user: dict = Depends(get_current_admin)) -> dict:
     data = payload.model_dump()
     data["id"] = data.get("id") or str(uuid.uuid4())
     await db.experiences.insert_one({**data})
@@ -472,7 +479,7 @@ async def create_exp(payload: Experience, user=Depends(get_current_admin)):
 
 
 @api.put("/admin/experience/{eid}")
-async def update_exp(eid: str, payload: Experience, user=Depends(get_current_admin)):
+async def update_exp(eid: str, payload: Experience, user: dict = Depends(get_current_admin)) -> dict:
     data = payload.model_dump()
     data["id"] = eid
     await db.experiences.update_one({"id": eid}, {"$set": data}, upsert=True)
@@ -480,13 +487,13 @@ async def update_exp(eid: str, payload: Experience, user=Depends(get_current_adm
 
 
 @api.delete("/admin/experience/{eid}")
-async def delete_exp(eid: str, user=Depends(get_current_admin)):
+async def delete_exp(eid: str, user: dict = Depends(get_current_admin)) -> dict:
     await db.experiences.delete_one({"id": eid})
     return {"ok": True}
 
 
 @api.post("/admin/education")
-async def create_edu(payload: Education, user=Depends(get_current_admin)):
+async def create_edu(payload: Education, user: dict = Depends(get_current_admin)) -> dict:
     data = payload.model_dump()
     data["id"] = data.get("id") or str(uuid.uuid4())
     await db.education.insert_one({**data})
@@ -494,7 +501,7 @@ async def create_edu(payload: Education, user=Depends(get_current_admin)):
 
 
 @api.put("/admin/education/{eid}")
-async def update_edu(eid: str, payload: Education, user=Depends(get_current_admin)):
+async def update_edu(eid: str, payload: Education, user: dict = Depends(get_current_admin)) -> dict:
     data = payload.model_dump()
     data["id"] = eid
     await db.education.update_one({"id": eid}, {"$set": data}, upsert=True)
@@ -502,37 +509,37 @@ async def update_edu(eid: str, payload: Education, user=Depends(get_current_admi
 
 
 @api.delete("/admin/education/{eid}")
-async def delete_edu(eid: str, user=Depends(get_current_admin)):
+async def delete_edu(eid: str, user: dict = Depends(get_current_admin)) -> dict:
     await db.education.delete_one({"id": eid})
     return {"ok": True}
 
 
 @api.put("/admin/skills")
-async def update_skills(payload: SkillsGroup, user=Depends(get_current_admin)):
+async def update_skills(payload: SkillsGroup, user: dict = Depends(get_current_admin)) -> dict:
     await db.skills.update_one({"_id": "main"}, {"$set": payload.model_dump()}, upsert=True)
     return {"ok": True}
 
 
 @api.get("/admin/messages")
-async def list_messages(user=Depends(get_current_admin)):
+async def list_messages(user: dict = Depends(get_current_admin)) -> list:
     cur = db.messages.find({}, {"_id": 0}).sort("created_at", -1)
     return [m async for m in cur]
 
 
 @api.delete("/admin/messages/{mid}")
-async def delete_message(mid: str, user=Depends(get_current_admin)):
+async def delete_message(mid: str, user: dict = Depends(get_current_admin)) -> dict:
     await db.messages.delete_one({"id": mid})
     return {"ok": True}
 
 
 @api.put("/admin/messages/{mid}/read")
-async def mark_read(mid: str, user=Depends(get_current_admin)):
+async def mark_read(mid: str, user: dict = Depends(get_current_admin)) -> dict:
     await db.messages.update_one({"id": mid}, {"$set": {"read": True}})
     return {"ok": True}
 
 
 @api.get("/health")
-async def health():
+async def health() -> dict:
     return {"status": "ok"}
 
 

@@ -20,11 +20,14 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     api.get("/auth/me").then((r) => setMe(r.data)).catch(() => nav("/admin"));
-  }, [nav]);
+  }, []);
 
   const logout = async () => {
-    try { await api.post("/auth/logout"); } catch {}
-    localStorage.removeItem("cs_admin_token");
+    try {
+      await api.post("/auth/logout");
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
     nav("/admin");
   };
 
@@ -139,7 +142,7 @@ function SiteEditor() {
   const [data, setData] = useState(null);
   const [toast, setToast] = useState("");
 
-  useEffect(() => { api.get("/site").then((r) => setData(r.data)); }, []);
+  useEffect(() => { api.get("/site").then((r) => setData(r.data)).catch((err) => console.error("site load failed:", err)); }, []);
   if (!data) return null;
 
   const set = (k, v) => setData((d) => ({ ...d, [k]: v }));
@@ -178,7 +181,8 @@ function SiteEditor() {
         <div className="mt-4 space-y-3">
           <div className="text-[10px] uppercase tracking-[0.22em] text-ink/55 font-bold">Paragraphs</div>
           {(data.about_paragraphs || []).map((p, i) => (
-            <div key={i} className="flex gap-2 items-start">
+            // eslint-disable-next-line react/no-array-index-key
+            <div key={`para-${i}`} className="flex gap-2 items-start">
               <textarea rows={3} value={p} onChange={(e) => setPara(i, e.target.value)} className="flex-1 border border-navy/15 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-cyan_brand resize-y" data-testid={`site-paragraph-${i}`} />
               <button onClick={() => removePara(i)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg" data-testid={`site-paragraph-remove-${i}`}><Trash2 className="w-4 h-4" /></button>
             </div>
@@ -220,7 +224,7 @@ function ProjectsEditor() {
   const [editing, setEditing] = useState(null);
   const [toast, setToast] = useState("");
 
-  const load = () => api.get("/projects").then((r) => setList(r.data));
+  const load = () => api.get("/projects").then((r) => setList(r.data)).catch((err) => console.error("projects load failed:", err));
   useEffect(() => { load(); }, []);
 
   const blank = { title: "", category: "Logo & Identity", description: "", image_url: "", year: "", role: "", tools: [], featured: false, order: list.length + 1 };
@@ -316,7 +320,7 @@ function ExperienceEditor() {
   const [editing, setEditing] = useState(null);
   const [toast, setToast] = useState("");
 
-  const load = () => api.get("/experience").then((r) => setList(r.data));
+  const load = () => api.get("/experience").then((r) => setList(r.data)).catch((err) => console.error("experience load failed:", err));
   useEffect(() => { load(); }, []);
 
   const blank = { company: "", title: "", location: "", start_date: "", end_date: "", bullets: [""], order: list.length + 1 };
@@ -401,7 +405,7 @@ function EducationEditor() {
   const [editing, setEditing] = useState(null);
   const [toast, setToast] = useState("");
 
-  const load = () => api.get("/education").then((r) => setList(r.data));
+  const load = () => api.get("/education").then((r) => setList(r.data)).catch((err) => console.error("education load failed:", err));
   useEffect(() => { load(); }, []);
 
   const blank = { institution: "", degree: "", location: "", dates: "", order: list.length + 1 };
@@ -465,7 +469,7 @@ function EducationEditor() {
 function SkillsEditor() {
   const [data, setData] = useState({ groups: [] });
   const [toast, setToast] = useState("");
-  useEffect(() => { api.get("/skills").then((r) => setData(r.data)); }, []);
+  useEffect(() => { api.get("/skills").then((r) => setData(r.data)).catch((err) => console.error("skills load failed:", err)); }, []);
 
   const setG = (i, k, v) => setData((d) => { const g = [...d.groups]; g[i] = { ...g[i], [k]: v }; return { groups: g }; });
   const addG = () => setData((d) => ({ groups: [...d.groups, { name: "New group", items: [] }] }));
@@ -486,7 +490,8 @@ function SkillsEditor() {
       }>
         <div className="space-y-4">
           {data.groups.map((g, i) => (
-            <div key={i} className="border border-navy/15 rounded-xl p-4" data-testid={`skill-group-row-${i}`}>
+            // eslint-disable-next-line react/no-array-index-key
+            <div key={`group-${i}`} className="border border-navy/15 rounded-xl p-4" data-testid={`skill-group-row-${i}`}>
               <div className="flex items-center gap-3 mb-3">
                 <Field label="Group name" value={g.name} onChange={(v) => setG(i, "name", v)} testid={`sk-group-name-${i}`} />
                 <button onClick={() => remG(i)} className="mt-6 p-2 text-red-500 hover:bg-red-50 rounded-lg" data-testid={`sk-group-remove-${i}`}><Trash2 className="w-4 h-4" /></button>
@@ -515,7 +520,7 @@ function SkillsEditor() {
 // ---------- MESSAGES PANEL ----------
 function MessagesPanel() {
   const [list, setList] = useState([]);
-  const load = () => api.get("/admin/messages").then((r) => setList(r.data));
+  const load = () => api.get("/admin/messages").then((r) => setList(r.data)).catch((err) => console.error("messages load failed:", err));
   useEffect(() => { load(); }, []);
   const del = async (id) => { await api.delete(`/admin/messages/${id}`); load(); };
   const read = async (id) => { await api.put(`/admin/messages/${id}/read`); load(); };

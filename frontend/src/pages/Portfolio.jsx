@@ -35,7 +35,7 @@ export default function Portfolio() {
         setEducation(ed.data);
         setSkills(sk.data);
       })
-      .catch(() => {})
+      .catch((err) => console.error("portfolio load failed:", err))
       .finally(() => setLoading(false));
   }, []);
 

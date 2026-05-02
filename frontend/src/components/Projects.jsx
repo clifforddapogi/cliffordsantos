@@ -20,6 +20,67 @@ const sizeMap = [
 
 const invertedIdx = new Set([1, 5, 9]);
 
+function ProjectCard({ project: p, idx, onOpen }) {
+  const span = sizeMap[idx % sizeMap.length];
+  const inverted = invertedIdx.has(idx % sizeMap.length);
+  const overlayBg = inverted
+    ? "bg-gradient-to-t from-navy via-navy/60 to-transparent"
+    : "bg-gradient-to-t from-bone via-bone/40 to-transparent";
+  const labelBg = inverted
+    ? "bg-gradient-to-t from-navy via-navy/85 to-transparent"
+    : "bg-gradient-to-t from-bone via-bone/85 to-transparent";
+  const titleColor = inverted ? "text-cream" : "text-navy";
+
+  return (
+    <motion.button
+      onClick={() => onOpen(p)}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.1 }}
+      transition={{ duration: 0.6, delay: (idx % 6) * 0.05 }}
+      className={`group relative rounded-3xl overflow-hidden text-left border ${
+        inverted ? "bg-navy text-cream border-navy" : "bg-bone border-navy/10"
+      } ${span}`}
+      data-testid={`project-card-${idx}`}
+    >
+      <div className="absolute inset-0">
+        <img
+          src={p.image_url}
+          alt={p.title}
+          onError={(e) => { e.currentTarget.style.display = "none"; }}
+          className="absolute inset-x-6 top-6 bottom-24 lg:inset-x-8 lg:top-8 lg:bottom-28 w-auto h-auto max-w-[calc(100%-3rem)] max-h-[calc(100%-7rem)] m-auto object-contain transition-transform duration-700 group-hover:scale-105"
+        />
+      </div>
+
+      <div className={`absolute inset-0 flex flex-col justify-between p-6 lg:p-8 transition-opacity duration-500 ${overlayBg} opacity-0 group-hover:opacity-100`}>
+        <div className="flex items-start justify-between">
+          <span className="text-[10px] uppercase tracking-[0.22em] font-bold text-cyan_brand">
+            {p.category}
+          </span>
+          <ArrowUpRight className={`w-5 h-5 ${titleColor}`} />
+        </div>
+        <div>
+          <h3 className={`font-display font-bold tracking-tight text-2xl lg:text-3xl ${titleColor}`}>
+            {p.title}
+          </h3>
+          <p className={`mt-1 text-sm ${inverted ? "text-cream/70" : "text-ink/60"}`}>
+            {p.year} · {p.role}
+          </p>
+        </div>
+      </div>
+
+      <div className={`absolute inset-x-0 bottom-0 px-5 pt-12 pb-5 lg:px-6 lg:pb-6 group-hover:opacity-0 transition-opacity ${labelBg}`}>
+        <div className="text-[10px] uppercase tracking-[0.22em] font-bold text-cyan_brand">
+          {p.category}
+        </div>
+        <div className={`font-display font-bold tracking-tight text-xl lg:text-2xl ${titleColor}`}>
+          {p.title}
+        </div>
+      </div>
+    </motion.button>
+  );
+}
+
 export default function Projects({ items }) {
   const [open, setOpen] = useState(null);
 
@@ -45,72 +106,14 @@ export default function Projects({ items }) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 lg:auto-rows-[200px] gap-5">
-          {items?.map((p, idx) => {
-            const span = sizeMap[idx % sizeMap.length];
-            const inverted = invertedIdx.has(idx % sizeMap.length);
-            return (
-              <motion.button
-                key={p.id || idx}
-                onClick={() => setOpen(p)}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.1 }}
-                transition={{ duration: 0.6, delay: (idx % 6) * 0.05 }}
-                className={`group relative rounded-3xl overflow-hidden text-left border ${
-                  inverted
-                    ? "bg-navy text-cream border-navy"
-                    : "bg-bone border-navy/10"
-                } ${span}`}
-                data-testid={`project-card-${idx}`}
-              >
-                {/* image */}
-                <div className="absolute inset-0">
-                  <img
-                    src={p.image_url}
-                    alt={p.title}
-                    onError={(e) => {
-                      e.currentTarget.style.display = "none";
-                    }}
-                    className="absolute inset-x-6 top-6 bottom-24 lg:inset-x-8 lg:top-8 lg:bottom-28 w-auto h-auto max-w-[calc(100%-3rem)] max-h-[calc(100%-7rem)] m-auto object-contain transition-transform duration-700 group-hover:scale-105"
-                  />
-                </div>
-
-                {/* overlay info */}
-                <div
-                  className={`absolute inset-0 flex flex-col justify-between p-6 lg:p-8 transition-opacity duration-500 ${
-                    inverted ? "bg-gradient-to-t from-navy via-navy/60 to-transparent" : "bg-gradient-to-t from-bone via-bone/40 to-transparent"
-                  } opacity-0 group-hover:opacity-100`}
-                >
-                  <div className="flex items-start justify-between">
-                    <span className={`text-[10px] uppercase tracking-[0.22em] font-bold ${inverted ? "text-cyan_brand" : "text-cyan_brand"}`}>
-                      {p.category}
-                    </span>
-                    <ArrowUpRight className={`w-5 h-5 ${inverted ? "text-cream" : "text-navy"}`} />
-                  </div>
-                  <div>
-                    <h3 className={`font-display font-bold tracking-tight text-2xl lg:text-3xl ${inverted ? "text-cream" : "text-navy"}`}>
-                      {p.title}
-                    </h3>
-                    <p className={`mt-1 text-sm ${inverted ? "text-cream/70" : "text-ink/60"}`}>{p.year} · {p.role}</p>
-                  </div>
-                </div>
-
-                {/* always-visible label small with safe backdrop */}
-                <div className={`absolute inset-x-0 bottom-0 px-5 pt-12 pb-5 lg:px-6 lg:pb-6 group-hover:opacity-0 transition-opacity ${
-                  inverted
-                    ? "bg-gradient-to-t from-navy via-navy/85 to-transparent"
-                    : "bg-gradient-to-t from-bone via-bone/85 to-transparent"
-                }`}>
-                  <div className={`text-[10px] uppercase tracking-[0.22em] font-bold ${inverted ? "text-cyan_brand" : "text-cyan_brand"}`}>
-                    {p.category}
-                  </div>
-                  <div className={`font-display font-bold tracking-tight text-xl lg:text-2xl ${inverted ? "text-cream" : "text-navy"}`}>
-                    {p.title}
-                  </div>
-                </div>
-              </motion.button>
-            );
-          })}
+          {items?.map((p, idx) => (
+            <ProjectCard
+              key={p.id || `proj-${idx}`}
+              project={p}
+              idx={idx}
+              onOpen={setOpen}
+            />
+          ))}
         </div>
       </div>
 

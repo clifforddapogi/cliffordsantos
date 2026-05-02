@@ -3,10 +3,14 @@ import os
 import uuid
 import pytest
 import requests
+from dotenv import load_dotenv
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://b425c1c5-e68d-40b1-a165-ef37189a212b.preview.emergentagent.com").rstrip("/")
-ADMIN_EMAIL = "clifforddapogi@gmail.com"
-ADMIN_PASSWORD = "Clifford2026!"
+# Load credentials from backend .env (kept out of git via .gitignore patterns)
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
+
+BASE_URL = os.environ["REACT_APP_BACKEND_URL"].rstrip("/") if os.environ.get("REACT_APP_BACKEND_URL") else os.environ.get("BACKEND_URL", "http://localhost:8001").rstrip("/")
+ADMIN_EMAIL = os.environ["ADMIN_EMAIL"]
+ADMIN_PASSWORD = os.environ["ADMIN_PASSWORD"]
 
 
 @pytest.fixture(scope="session")
@@ -94,7 +98,7 @@ class TestContact:
         r = api.post(f"{BASE_URL}/api/contact", json=payload)
         assert r.status_code == 200
         body = r.json()
-        assert body["ok"] is True
+        assert body["ok"] == True  # noqa: E712
         msg_id = body["id"]
 
         # Verify it appears in admin messages
@@ -231,7 +235,7 @@ class TestAdminMessagesCRUD:
         assert r2.status_code == 200
         msgs = requests.get(f"{BASE_URL}/api/admin/messages", headers=auth_headers).json()
         m = next(m for m in msgs if m["id"] == mid)
-        assert m["read"] is True
+        assert m["read"] == True  # noqa: E712
         # delete
         r3 = requests.delete(f"{BASE_URL}/api/admin/messages/{mid}", headers=auth_headers)
         assert r3.status_code == 200
