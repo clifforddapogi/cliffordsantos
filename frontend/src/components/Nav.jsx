@@ -2,13 +2,71 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Logo from "./Logo";
 
-const links = [
+const LINKS = [
   { href: "#about", label: "About" },
   { href: "#experience", label: "Experience" },
   { href: "#work", label: "Work" },
   { href: "#skills", label: "Skills" },
   { href: "#contact", label: "Contact" },
 ];
+
+function NavLinks() {
+  return (
+    <nav className="hidden md:flex items-center gap-8">
+      {LINKS.map((l) => (
+        <a
+          key={l.href}
+          href={l.href}
+          className="kinetic-link text-sm font-medium text-ink/80 hover:text-navy"
+          data-testid={`nav-link-${l.label.toLowerCase()}`}
+        >
+          {l.label}
+        </a>
+      ))}
+    </nav>
+  );
+}
+
+function NavBrand() {
+  return (
+    <Link to="/" className="flex items-center gap-3 group" data-testid="nav-logo-link">
+      <Logo size={40} />
+      <div className="leading-none hidden sm:block">
+        <div className="font-display font-bold text-navy tracking-tightest text-[15px]">Clifford Santos</div>
+        <div className="text-[10px] uppercase tracking-[0.22em] text-ink/60">Designer · Front-End</div>
+      </div>
+    </Link>
+  );
+}
+
+function MobileMenu({ resumeUrl, onClose }) {
+  return (
+    <div className="md:hidden bg-cream border-t border-black/10" data-testid="mobile-menu">
+      <div className="px-6 py-4 flex flex-col gap-3">
+        {LINKS.map((l) => (
+          <a
+            key={l.href}
+            href={l.href}
+            onClick={onClose}
+            className="text-base font-medium py-2"
+            data-testid={`mobile-nav-${l.label.toLowerCase()}`}
+          >
+            {l.label}
+          </a>
+        ))}
+        <a
+          href={resumeUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-2 inline-flex items-center justify-center bg-navy text-cream rounded-full px-5 py-3 text-sm font-medium"
+          data-testid="mobile-resume-btn"
+        >
+          Download Resume
+        </a>
+      </div>
+    </div>
+  );
+}
 
 export default function Nav({ resumeUrl }) {
   const [scrolled, setScrolled] = useState(false);
@@ -29,27 +87,8 @@ export default function Nav({ resumeUrl }) {
       data-testid="site-nav"
     >
       <div className="mx-auto max-w-[1400px] px-6 lg:px-10 flex items-center justify-between h-20">
-        <Link to="/" className="flex items-center gap-3 group" data-testid="nav-logo-link">
-          <Logo size={40} />
-          <div className="leading-none hidden sm:block">
-            <div className="font-display font-bold text-navy tracking-tightest text-[15px]">Clifford Santos</div>
-            <div className="text-[10px] uppercase tracking-[0.22em] text-ink/60">Designer · Front-End</div>
-          </div>
-        </Link>
-
-        <nav className="hidden md:flex items-center gap-8">
-          {links.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              className="kinetic-link text-sm font-medium text-ink/80 hover:text-navy"
-              data-testid={`nav-link-${l.label.toLowerCase()}`}
-            >
-              {l.label}
-            </a>
-          ))}
-        </nav>
-
+        <NavBrand />
+        <NavLinks />
         <div className="flex items-center gap-3">
           <a
             href={resumeUrl}
@@ -73,32 +112,7 @@ export default function Nav({ resumeUrl }) {
         </div>
       </div>
 
-      {open && (
-        <div className="md:hidden bg-cream border-t border-black/10" data-testid="mobile-menu">
-          <div className="px-6 py-4 flex flex-col gap-3">
-            {links.map((l) => (
-              <a
-                key={l.href}
-                href={l.href}
-                onClick={() => setOpen(false)}
-                className="text-base font-medium py-2"
-                data-testid={`mobile-nav-${l.label.toLowerCase()}`}
-              >
-                {l.label}
-              </a>
-            ))}
-            <a
-              href={resumeUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-2 inline-flex items-center justify-center bg-navy text-cream rounded-full px-5 py-3 text-sm font-medium"
-              data-testid="mobile-resume-btn"
-            >
-              Download Resume
-            </a>
-          </div>
-        </div>
-      )}
+      {open && <MobileMenu resumeUrl={resumeUrl} onClose={() => setOpen(false)} />}
     </header>
   );
 }

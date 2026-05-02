@@ -98,7 +98,7 @@ class TestContact:
         r = api.post(f"{BASE_URL}/api/contact", json=payload)
         assert r.status_code == 200
         body = r.json()
-        assert body["ok"] == True  # noqa: E712
+        assert body["ok"]
         msg_id = body["id"]
 
         # Verify it appears in admin messages
@@ -235,7 +235,7 @@ class TestAdminMessagesCRUD:
         assert r2.status_code == 200
         msgs = requests.get(f"{BASE_URL}/api/admin/messages", headers=auth_headers).json()
         m = next(m for m in msgs if m["id"] == mid)
-        assert m["read"] == True  # noqa: E712
+        assert m["read"]
         # delete
         r3 = requests.delete(f"{BASE_URL}/api/admin/messages/{mid}", headers=auth_headers)
         assert r3.status_code == 200

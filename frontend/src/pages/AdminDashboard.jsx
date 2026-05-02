@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../lib/api";
 import Logo from "../components/Logo";
@@ -138,11 +138,85 @@ function Toast({ msg }) {
 }
 
 // ---------- SITE EDITOR ----------
+function HeroSection({ data, set }) {
+  return (
+    <Card title="Hero">
+      <div className="grid grid-cols-2 gap-4">
+        <Field label="Eyebrow" value={data.hero_eyebrow} onChange={(v) => set("hero_eyebrow", v)} testid="site-hero-eyebrow" />
+        <Field label="Name" value={data.hero_name} onChange={(v) => set("hero_name", v)} testid="site-hero-name" />
+        <Field label="Title" value={data.hero_title} onChange={(v) => set("hero_title", v)} testid="site-hero-title" />
+        <Field label="Location" value={data.location} onChange={(v) => set("location", v)} testid="site-location" />
+      </div>
+      <div className="mt-4">
+        <FieldArea label="Tagline" value={data.hero_tagline} onChange={(v) => set("hero_tagline", v)} testid="site-hero-tagline" />
+      </div>
+    </Card>
+  );
+}
+
+function AboutSection({ data, set, setPara, addPara, removePara }) {
+  return (
+    <Card title="About">
+      <Field label="Heading" value={data.about_heading} onChange={(v) => set("about_heading", v)} testid="site-about-heading" />
+      <div className="mt-3">
+        <Field label="Headshot URL" value={data.headshot_url} onChange={(v) => set("headshot_url", v)} testid="site-headshot-url" />
+      </div>
+      <div className="mt-4 space-y-3">
+        <div className="text-[10px] uppercase tracking-[0.22em] text-ink/55 font-bold">Paragraphs</div>
+        {(data.about_paragraphs || []).map((p, i) => (
+          <div key={`para-${i}`} className="flex gap-2 items-start">
+            <textarea rows={3} value={p} onChange={(e) => setPara(i, e.target.value)} className="flex-1 border border-navy/15 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-cyan_brand resize-y" data-testid={`site-paragraph-${i}`} />
+            <button onClick={() => removePara(i)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg" data-testid={`site-paragraph-remove-${i}`}><Trash2 className="w-4 h-4" /></button>
+          </div>
+        ))}
+        <button onClick={addPara} className="inline-flex items-center gap-2 text-sm text-cyan_brand hover:underline" data-testid="site-add-paragraph"><Plus className="w-4 h-4" /> Add paragraph</button>
+      </div>
+    </Card>
+  );
+}
+
+function ContactInfoSection({ data, set }) {
+  return (
+    <Card title="Contact info">
+      <div className="grid grid-cols-2 gap-4">
+        <Field label="Email" value={data.email} onChange={(v) => set("email", v)} testid="site-email" />
+        <Field label="Phone" value={data.phone} onChange={(v) => set("phone", v)} testid="site-phone" />
+        <Field label="Resume URL" value={data.resume_url} onChange={(v) => set("resume_url", v)} testid="site-resume-url" />
+        <Field label="Footer CTA" value={data.footer_cta} onChange={(v) => set("footer_cta", v)} testid="site-footer-cta" />
+      </div>
+    </Card>
+  );
+}
+
+function SocialsSection({ data, setSocial }) {
+  return (
+    <Card title="Social links">
+      <div className="grid grid-cols-2 gap-4">
+        {["linkedin", "facebook", "twitter", "instagram", "deviantart"].map((k) => (
+          <Field key={k} label={k} value={data.socials?.[k]} onChange={(v) => setSocial(k, v)} testid={`site-social-${k}`} />
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+function SaveButton({ onClick, label = "Save site content", testid }) {
+  return (
+    <div className="sticky bottom-4 flex justify-end">
+      <button onClick={onClick} className="inline-flex items-center gap-2 bg-cyan_brand text-white rounded-full px-6 py-3 text-sm font-medium hover:bg-navy transition-colors shadow-xl" data-testid={testid}>
+        <Save className="w-4 h-4" /> {label}
+      </button>
+    </div>
+  );
+}
+
 function SiteEditor() {
   const [data, setData] = useState(null);
   const [toast, setToast] = useState("");
 
-  useEffect(() => { api.get("/site").then((r) => setData(r.data)).catch((err) => console.error("site load failed:", err)); }, []);
+  useEffect(() => {
+    api.get("/site").then((r) => setData(r.data)).catch((err) => console.error("site load failed:", err));
+  }, []);
   if (!data) return null;
 
   const set = (k, v) => setData((d) => ({ ...d, [k]: v }));
@@ -161,58 +235,11 @@ function SiteEditor() {
 
   return (
     <>
-      <Card title="Hero">
-        <div className="grid grid-cols-2 gap-4">
-          <Field label="Eyebrow" value={data.hero_eyebrow} onChange={(v) => set("hero_eyebrow", v)} testid="site-hero-eyebrow" />
-          <Field label="Name" value={data.hero_name} onChange={(v) => set("hero_name", v)} testid="site-hero-name" />
-          <Field label="Title" value={data.hero_title} onChange={(v) => set("hero_title", v)} testid="site-hero-title" />
-          <Field label="Location" value={data.location} onChange={(v) => set("location", v)} testid="site-location" />
-        </div>
-        <div className="mt-4">
-          <FieldArea label="Tagline" value={data.hero_tagline} onChange={(v) => set("hero_tagline", v)} testid="site-hero-tagline" />
-        </div>
-      </Card>
-
-      <Card title="About">
-        <Field label="Heading" value={data.about_heading} onChange={(v) => set("about_heading", v)} testid="site-about-heading" />
-        <div className="mt-3">
-          <Field label="Headshot URL" value={data.headshot_url} onChange={(v) => set("headshot_url", v)} testid="site-headshot-url" />
-        </div>
-        <div className="mt-4 space-y-3">
-          <div className="text-[10px] uppercase tracking-[0.22em] text-ink/55 font-bold">Paragraphs</div>
-          {(data.about_paragraphs || []).map((p, i) => (
-            // eslint-disable-next-line react/no-array-index-key
-            <div key={`para-${i}`} className="flex gap-2 items-start">
-              <textarea rows={3} value={p} onChange={(e) => setPara(i, e.target.value)} className="flex-1 border border-navy/15 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-cyan_brand resize-y" data-testid={`site-paragraph-${i}`} />
-              <button onClick={() => removePara(i)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg" data-testid={`site-paragraph-remove-${i}`}><Trash2 className="w-4 h-4" /></button>
-            </div>
-          ))}
-          <button onClick={addPara} className="inline-flex items-center gap-2 text-sm text-cyan_brand hover:underline" data-testid="site-add-paragraph"><Plus className="w-4 h-4" /> Add paragraph</button>
-        </div>
-      </Card>
-
-      <Card title="Contact info">
-        <div className="grid grid-cols-2 gap-4">
-          <Field label="Email" value={data.email} onChange={(v) => set("email", v)} testid="site-email" />
-          <Field label="Phone" value={data.phone} onChange={(v) => set("phone", v)} testid="site-phone" />
-          <Field label="Resume URL" value={data.resume_url} onChange={(v) => set("resume_url", v)} testid="site-resume-url" />
-          <Field label="Footer CTA" value={data.footer_cta} onChange={(v) => set("footer_cta", v)} testid="site-footer-cta" />
-        </div>
-      </Card>
-
-      <Card title="Social links">
-        <div className="grid grid-cols-2 gap-4">
-          {["linkedin", "facebook", "twitter", "instagram", "deviantart"].map((k) => (
-            <Field key={k} label={k} value={data.socials?.[k]} onChange={(v) => setSocial(k, v)} testid={`site-social-${k}`} />
-          ))}
-        </div>
-      </Card>
-
-      <div className="sticky bottom-4 flex justify-end">
-        <button onClick={save} className="inline-flex items-center gap-2 bg-cyan_brand text-white rounded-full px-6 py-3 text-sm font-medium hover:bg-navy transition-colors shadow-xl" data-testid="site-save">
-          <Save className="w-4 h-4" /> Save site content
-        </button>
-      </div>
+      <HeroSection data={data} set={set} />
+      <AboutSection data={data} set={set} setPara={setPara} addPara={addPara} removePara={removePara} />
+      <ContactInfoSection data={data} set={set} />
+      <SocialsSection data={data} setSocial={setSocial} />
+      <SaveButton onClick={save} testid="site-save" />
       <Toast msg={toast} />
     </>
   );
@@ -224,8 +251,11 @@ function ProjectsEditor() {
   const [editing, setEditing] = useState(null);
   const [toast, setToast] = useState("");
 
-  const load = () => api.get("/projects").then((r) => setList(r.data)).catch((err) => console.error("projects load failed:", err));
-  useEffect(() => { load(); }, []);
+  const load = useCallback(
+    () => api.get("/projects").then((r) => setList(r.data)).catch((err) => console.error("projects load failed:", err)),
+    []
+  );
+  useEffect(() => { load(); }, [load]);
 
   const blank = { title: "", category: "Logo & Identity", description: "", image_url: "", year: "", role: "", tools: [], featured: false, order: list.length + 1 };
 
@@ -320,8 +350,11 @@ function ExperienceEditor() {
   const [editing, setEditing] = useState(null);
   const [toast, setToast] = useState("");
 
-  const load = () => api.get("/experience").then((r) => setList(r.data)).catch((err) => console.error("experience load failed:", err));
-  useEffect(() => { load(); }, []);
+  const load = useCallback(
+    () => api.get("/experience").then((r) => setList(r.data)).catch((err) => console.error("experience load failed:", err)),
+    []
+  );
+  useEffect(() => { load(); }, [load]);
 
   const blank = { company: "", title: "", location: "", start_date: "", end_date: "", bullets: [""], order: list.length + 1 };
 
@@ -388,7 +421,7 @@ function ExperienceForm({ initial, onSave, onCancel }) {
       <div className="mt-4 space-y-2">
         <div className="text-[10px] uppercase tracking-[0.22em] text-ink/55 font-bold">Bullets</div>
         {e.bullets.map((b, i) => (
-          <div key={i} className="flex gap-2">
+          <div key={`bullet-${i}`} className="flex gap-2">
             <textarea rows={2} value={b} onChange={(ev) => setB(i, ev.target.value)} className="flex-1 border border-navy/15 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-cyan_brand" data-testid={`ef-bullet-${i}`} />
             <button onClick={() => remB(i)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg" data-testid={`ef-bullet-remove-${i}`}><Trash2 className="w-4 h-4" /></button>
           </div>
@@ -405,8 +438,11 @@ function EducationEditor() {
   const [editing, setEditing] = useState(null);
   const [toast, setToast] = useState("");
 
-  const load = () => api.get("/education").then((r) => setList(r.data)).catch((err) => console.error("education load failed:", err));
-  useEffect(() => { load(); }, []);
+  const load = useCallback(
+    () => api.get("/education").then((r) => setList(r.data)).catch((err) => console.error("education load failed:", err)),
+    []
+  );
+  useEffect(() => { load(); }, [load]);
 
   const blank = { institution: "", degree: "", location: "", dates: "", order: list.length + 1 };
 
@@ -490,7 +526,6 @@ function SkillsEditor() {
       }>
         <div className="space-y-4">
           {data.groups.map((g, i) => (
-            // eslint-disable-next-line react/no-array-index-key
             <div key={`group-${i}`} className="border border-navy/15 rounded-xl p-4" data-testid={`skill-group-row-${i}`}>
               <div className="flex items-center gap-3 mb-3">
                 <Field label="Group name" value={g.name} onChange={(v) => setG(i, "name", v)} testid={`sk-group-name-${i}`} />
@@ -520,8 +555,11 @@ function SkillsEditor() {
 // ---------- MESSAGES PANEL ----------
 function MessagesPanel() {
   const [list, setList] = useState([]);
-  const load = () => api.get("/admin/messages").then((r) => setList(r.data)).catch((err) => console.error("messages load failed:", err));
-  useEffect(() => { load(); }, []);
+  const load = useCallback(
+    () => api.get("/admin/messages").then((r) => setList(r.data)).catch((err) => console.error("messages load failed:", err)),
+    []
+  );
+  useEffect(() => { load(); }, [load]);
   const del = async (id) => { await api.delete(`/admin/messages/${id}`); load(); };
   const read = async (id) => { await api.put(`/admin/messages/${id}/read`); load(); };
 

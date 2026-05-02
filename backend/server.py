@@ -298,7 +298,7 @@ async def _seed_admin() -> None:
     admin_email = os.environ.get("ADMIN_EMAIL", "admin@example.com").lower()
     admin_password = os.environ.get("ADMIN_PASSWORD", "admin123")
     existing = await db.users.find_one({"email": admin_email})
-    if existing is None:
+    if not existing:
         await db.users.insert_one({
             "id": str(uuid.uuid4()),
             "email": admin_email,
