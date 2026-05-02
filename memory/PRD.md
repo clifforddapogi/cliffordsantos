@@ -36,6 +36,16 @@
 - ✅ Responsive: mobile menu, stacking layouts, bento collapses to 1-col.
 - ✅ Tested: 19/19 backend tests pass; frontend e2e flows verified (Playwright).
 
+## Code-quality hardening (2026-01)
+- ✅ Auth: removed localStorage token storage — frontend now relies solely on httpOnly+secure cookies (XSS-safe).
+- ✅ CORS: `allow_credentials=True` with explicit origins from `CORS_ORIGINS` env var.
+- ✅ Test secrets: pulled from `.env` via dotenv (no hardcoded creds).
+- ✅ `Projects.jsx`: extracted `ProjectCard` subcomponent (cyclomatic complexity reduced).
+- ✅ `seed()` decomposed into `_seed_admin / _seed_singleton / _seed_collection / _ensure_indexes` helpers.
+- ✅ All FastAPI endpoints have explicit return type hints.
+- ✅ React error logging: every `.catch()` now logs via `console.error` (no silent failures).
+- ✅ Stable composite keys replace array-index keys in dynamic editors and marquee.
+
 ## Test credentials
 - Admin: `clifforddapogi@gmail.com` / `Clifford2026!`
 - Stored at `/app/memory/test_credentials.md`
